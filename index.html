@@ -1,0 +1,1000 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, viewport-fit=cover">
+<title>Работник — Покет Калькулейтор Mobile Compact v4</title>
+<style>
+:root{
+  --red:#e53935;
+  --yellow:#f4c300;
+  --green:#20b455;
+  --blue:#35b8f4;
+  --black:#111111;
+  --white:#ffffff;
+  --lcd:#d8efc8;
+  --lcd-border:#111111;
+  --lcd-ink:#233523;
+
+  --pattern-1:rgba(255, 82, 146, 0.08);
+  --pattern-2:rgba(255, 188, 0, 0.08);
+  --pattern-3:rgba(53, 184, 244, 0.07);
+  --pattern-outline:rgba(0,0,0,0.045);
+
+  --shadow:rgba(0,0,0,.16);
+  --deep-shadow:rgba(0,0,0,.28);
+}
+*{box-sizing:border-box}
+body{
+  margin:0;
+  min-height:100vh;
+  font-family:"Trebuchet MS","Arial Rounded MT Bold","Verdana",sans-serif;
+  color:var(--white);
+  display:flex;
+  justify-content:center;
+  align-items:flex-start;
+  padding:20px;
+  background-color:#ffffff;
+  background-image:
+    radial-gradient(circle at 10px 10px, var(--pattern-1) 0 7px, transparent 7px),
+    radial-gradient(circle at 38px 20px, var(--pattern-2) 0 6px, transparent 6px),
+    radial-gradient(circle at 22px 34px, var(--pattern-3) 0 5px, transparent 5px),
+    radial-gradient(circle at 14px 14px, var(--pattern-outline) 0 9px, transparent 9px),
+    radial-gradient(circle at 42px 26px, var(--pattern-outline) 0 8px, transparent 8px),
+    radial-gradient(circle at 20px 36px, var(--pattern-outline) 0 7px, transparent 7px);
+  background-size:56px 56px;
+}
+.device{
+  width:min(540px,100%);
+  background:var(--blue);
+  border:5px solid var(--black);
+  border-radius:26px;
+  padding:16px 16px 20px;
+  box-shadow:0 16px 34px var(--shadow);
+}
+.brand{
+  display:grid;
+  grid-template-columns:1fr auto;
+  align-items:end;
+  gap:12px;
+  margin-bottom:12px;
+  color:var(--white);
+}
+.logo{
+  font-size:24px;
+  font-weight:900;
+  font-style:italic;
+  letter-spacing:.04em;
+  line-height:1;
+}
+.sublogo{
+  font-size:13px;
+  font-weight:900;
+  font-style:italic;
+  letter-spacing:.06em;
+  line-height:1;
+  text-align:right;
+}
+.screen-shell{
+  background:var(--red);
+  border:5px solid var(--black);
+  border-radius:22px;
+  padding:10px;
+  margin-bottom:12px;
+}
+.screen{
+  background:var(--lcd);
+  color:var(--lcd-ink);
+  border:5px solid var(--lcd-border);
+  border-radius:14px;
+  min-height:188px;
+  padding:12px;
+}
+.screen-top,.screen-bottom{
+  display:flex;
+  justify-content:space-between;
+  gap:8px;
+  font-size:12px;
+  font-weight:900;
+  color:var(--lcd-ink);
+}
+.screen-top{margin-bottom:8px}
+.screen-bottom{margin-top:8px}
+.trackline{
+  min-height:38px;
+  padding:6px 8px;
+  border-radius:12px;
+  margin-top:6px;
+  border:2px solid transparent;
+  background:rgba(255,255,255,.18);
+  cursor:pointer;
+}
+.trackline.active{
+  border-color:var(--black);
+  background:rgba(255,255,255,.34);
+}
+.trackname{
+  font-size:11px;
+  font-weight:900;
+  margin-right:8px;
+  display:inline-block;
+  min-width:88px;
+}
+.tokens{
+  font-family:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;
+  font-size:17px;
+  line-height:1.6;
+  word-break:break-word;
+}
+.token{
+  padding:1px 4px;
+  border-radius:6px;
+  cursor:pointer;
+}
+.token.selected{
+  background:rgba(0,0,0,.12);
+  outline:1px solid rgba(0,0,0,.35);
+}
+.token.playing{
+  box-shadow:inset 0 -3px 0 rgba(0,0,0,.8);
+}
+.muted-badge{
+  display:inline-block;
+  margin-left:6px;
+  padding:1px 6px;
+  border-radius:999px;
+  background:var(--black);
+  color:var(--white);
+  font-size:10px;
+  font-weight:900;
+  vertical-align:middle;
+}
+
+.pill-grid{
+  display:grid;
+  grid-template-columns:repeat(5,1fr);
+  gap:8px;
+  margin-bottom:11px;
+}
+.controls{
+  display:grid;
+  grid-template-columns:repeat(2,1fr);
+  gap:9px;
+  margin-bottom:11px;
+}
+.control{
+  background:var(--green);
+  border:4px solid var(--black);
+  border-radius:18px;
+  padding:9px;
+  color:var(--white);
+}
+.control label{
+  display:block;
+  font-size:10px;
+  text-transform:uppercase;
+  letter-spacing:.06em;
+  font-weight:900;
+  margin-bottom:6px;
+  color:var(--white);
+}
+select,input[type="range"]{width:100%}
+select{
+  appearance:none;
+  background:var(--white);
+  color:var(--black);
+  border:3px solid var(--black);
+  border-radius:12px;
+  padding:8px;
+  font:inherit;
+  font-weight:800;
+}
+input[type="range"]{
+  accent-color:var(--black);
+}
+
+.utilitybar{
+  display:grid;
+  grid-template-columns:repeat(4,1fr);
+  gap:8px;
+  margin-bottom:11px;
+}
+.keys{
+  display:grid;
+  grid-template-columns:repeat(4,1fr);
+  gap:10px;
+}
+button{
+  appearance:none;
+  border:4px solid var(--black);
+  min-height:60px;
+  border-radius:18px;
+  color:var(--white);
+  font:inherit;
+  font-weight:900;
+  font-size:18px;
+  letter-spacing:.01em;
+  background:var(--blue);
+  box-shadow:0 5px 0 var(--deep-shadow);
+  touch-action:manipulation;
+  cursor:pointer;
+}
+button:active{
+  transform:translateY(3px);
+  box-shadow:0 2px 0 var(--deep-shadow);
+}
+button small{font-size:9px;font-weight:900}
+button.num-red{background:var(--red)}
+button.num-yellow{background:var(--yellow); color:var(--white)}
+button.num-green{background:var(--green)}
+button.num-blue{background:var(--blue)}
+button.layer{background:var(--black)}
+button.layer.activeLayer{background:var(--yellow)}
+button.util{background:var(--black)}
+button.secondaryAccent{background:var(--green)}
+button.play{background:var(--red)}
+button.stop{background:var(--black)}
+
+.rhythm{
+  margin-top:12px;
+  padding:12px;
+  border-radius:18px;
+  background:var(--yellow);
+  border:4px solid var(--black);
+  color:var(--white);
+}
+.rhythm-title{
+  display:flex;
+  justify-content:space-between;
+  align-items:center;
+  margin-bottom:8px;
+  font-size:12px;
+  font-weight:900;
+  text-transform:uppercase;
+  color:var(--white);
+}
+.rhythm .control{
+  background:var(--red);
+}
+.rhythm-grid{
+  display:grid;
+  grid-template-columns:1.25fr 1fr 1fr;
+  gap:8px
+}
+.help{
+  margin-top:12px;
+  background:var(--black);
+  border:4px solid var(--black);
+  border-radius:18px;
+  padding:10px 12px;
+  font-size:11px;
+  line-height:1.5;
+  color:var(--white);
+}
+input[type="checkbox"]{
+  accent-color:var(--black);
+}
+@media(max-width:480px){
+  body{padding:8px}
+  .device{padding:12px}
+  .pill-grid{grid-template-columns:repeat(3,1fr)}
+  .trackname{min-width:72px}
+  button{min-height:56px}
+  .tokens{font-size:16px}
+}
+</style>
+
+<link rel="manifest" href="./manifest.webmanifest">
+<meta name="theme-color" content="#35b8f4">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="РАБОТНИК">
+<link rel="apple-touch-icon" href="./icons/icon.svg">
+
+
+<style>
+html, body {
+  min-height: 100%;
+  overscroll-behavior: none;
+  -webkit-user-select: none;
+  user-select: none;
+  -webkit-touch-callout: none;
+}
+body {
+  padding-top: max(20px, env(safe-area-inset-top));
+  padding-bottom: max(20px, env(safe-area-inset-bottom));
+  padding-left: max(20px, env(safe-area-inset-left));
+  padding-right: max(20px, env(safe-area-inset-right));
+}
+button, select, input { -webkit-tap-highlight-color: transparent; }
+</style>
+
+
+<style id="mobile-v2">
+/* iPhone-first layout: everything stays inside the viewport width. */
+html { width:100%; overflow-x:hidden; background:#fff; }
+body{
+  width:100%;
+  max-width:100vw;
+  overflow-x:hidden;
+  align-items:flex-start;
+  padding:
+    max(8px, env(safe-area-inset-top))
+    max(8px, env(safe-area-inset-right))
+    max(12px, env(safe-area-inset-bottom))
+    max(8px, env(safe-area-inset-left));
+}
+.device{
+  width:100%;
+  max-width:540px;
+  min-width:0;
+  border-width:4px;
+  border-radius:22px;
+  padding:12px;
+}
+.brand{gap:8px;margin-bottom:10px}
+.logo{font-size:clamp(20px,7vw,28px)}
+.sublogo{font-size:clamp(10px,3.6vw,15px)}
+.screen-shell{border-width:4px;border-radius:19px;padding:8px}
+.screen{border-width:4px;border-radius:12px;min-height:170px;padding:10px}
+.trackname{min-width:72px}
+.tokens{font-size:15px}
+
+.pill-grid{
+  grid-template-columns:repeat(3,minmax(0,1fr));
+  gap:7px;
+}
+.pill-grid button:nth-child(4),
+.pill-grid button:nth-child(5){ min-height:50px; }
+
+.controls{
+  grid-template-columns:repeat(2,minmax(0,1fr));
+  gap:7px;
+}
+.control{min-width:0;padding:8px;border-width:3px;border-radius:15px}
+.control label{font-size:9px}
+select{min-width:0;max-width:100%;font-size:16px;padding:7px}
+
+.utilitybar{
+  grid-template-columns:repeat(2,minmax(0,1fr));
+  gap:7px;
+}
+.keys{
+  grid-template-columns:repeat(4,minmax(0,1fr));
+  gap:7px;
+}
+button{
+  min-width:0;
+  width:100%;
+  min-height:54px;
+  border-width:3px;
+  border-radius:15px;
+  padding:6px 4px;
+  font-size:clamp(13px,4vw,18px);
+  overflow-wrap:anywhere;
+  line-height:1.05;
+}
+button small{font-size:8px}
+.rhythm{padding:9px;border-width:3px;border-radius:16px}
+.rhythm-grid{
+  grid-template-columns:repeat(3,minmax(0,1fr));
+  gap:6px;
+}
+.rhythm-grid .control{padding:6px}
+.rhythm-grid select{font-size:14px;padding:6px}
+.help{
+  max-width:100%;
+  line-height:1.35;
+  padding:8px 4px 2px !important;
+}
+
+/* Small iPhones */
+@media (max-width:390px){
+  .device{padding:9px}
+  .logo{font-size:21px}
+  .sublogo{font-size:10px}
+  .screen{min-height:160px}
+  .screen-top,.screen-bottom{font-size:10px}
+  .trackline{padding:5px 6px}
+  .trackname{min-width:65px;font-size:10px}
+  .tokens{font-size:14px}
+  button{min-height:50px;font-size:14px}
+  .controls{gap:6px}
+  .control label{font-size:8px}
+  .rhythm-title{font-size:10px}
+}
+/* Landscape: keep usable instead of forcing portrait-only sizing. */
+@media (orientation:landscape) and (max-height:500px){
+  body{padding:6px}
+  .device{max-width:760px}
+}
+</style>
+
+
+<style id="rabotnik-iphone-compact">
+@media(max-width:600px){
+ html,body{margin:0;max-width:100%;overflow-x:hidden;}
+ body{padding: max(4px,env(safe-area-inset-top)) 4px max(9px,env(safe-area-inset-bottom))!important;}
+ .device{border:3px solid #111;border-radius:18px;padding:8px 9px 10px;box-shadow:none;}
+ .brand{margin-bottom:7px;gap:6px;align-items:center;}
+ .logo{font-size:clamp(17px,6vw,23px)}.sublogo{font-size:clamp(9px,2.8vw,11px)}
+ .screen-shell{padding:6px;margin-bottom:7px;border-width:3px;border-radius:15px}
+ .screen{min-height:0;padding:8px 9px;border-width:3px;border-radius:11px}
+ .screen-top,.screen-bottom{font-size:10px;margin:0 0 4px}
+ .screen-bottom{margin:6px 0 0;}
+ .trackline{min-height:30px;margin-top:4px;padding:4px 6px;border-width:2px;border-radius:9px}
+ .trackname{font-size:10px;min-width:66px;margin-right:4px;} .tokens{font-size:14px;line-height:1.3}
+ .pill-grid{grid-template-columns:repeat(6,minmax(0,1fr));gap:5px;margin-bottom:7px;}
+ .pill-grid button{grid-column:span 2;min-height:39px;font-size:clamp(11px,3.1vw,14px);border-radius:11px;}
+ .pill-grid button:nth-child(4),.pill-grid button:nth-child(5){grid-column:span 3;min-height:33px}
+ .utilitybar{grid-template-columns:repeat(4,minmax(0,1fr));gap:4px;margin-bottom:8px;}
+ .utilitybar button{min-height:36px;padding:3px 2px;font-size:clamp(9px,2.55vw,12px);border-radius:10px;line-height:1.08}
+ .keys{grid-template-columns:repeat(4,minmax(0,1fr));gap:6px}
+ .keys button{height:clamp(49px,8.1vh,68px);min-height:49px;padding:3px 2px;font-size:clamp(13px,3.7vw,18px);border-radius:13px;overflow-wrap:anywhere}
+ .keys button[data-action="variation"],.keys button[data-action="reverse"],.keys button[data-action="duplicate"]{font-size:clamp(10px,2.5vw,12px)}
+ button{border-width:3px;box-shadow:0 3px 0 rgba(0,0,0,.24)}
+ .settings-drawer{margin-top:11px;border:3px solid #111;border-radius:13px;overflow:hidden;background:#f4c300}
+ .settings-drawer summary{cursor:pointer;list-style:none; padding:11px 10px;text-align:center;color:#111;font-size:12px;font-weight:900;letter-spacing:.03em;user-select:none}
+ .settings-drawer summary::-webkit-details-marker{display:none}
+ .settings-drawer[open] summary{border-bottom:3px solid #111}
+ .settings-drawer .controls{padding:8px 8px 0;margin:0;grid-template-columns:repeat(2,minmax(0,1fr))}
+ .settings-drawer .rhythm{margin:9px 8px 8px}
+ .help{margin-top:6px;font-size:9px!important}
+}
+@media(min-width:601px){.settings-drawer{display:contents}.settings-drawer>summary{display:none}}
+</style>
+</head>
+<body>
+<main class="device">
+  <div class="brand">
+    <div class="logo">РАБОТНИК</div>
+    <div class="sublogo">ПОКЕТ КАЛЬКУЛЕЙТОР</div>
+  </div>
+
+  <section class="screen-shell">
+    <section class="screen">
+      <div class="screen-top">
+        <span id="keyLabel">C · МИНОР</span>
+        <span id="bpmLabel">112 УД/МИН</span>
+      </div>
+
+      <div class="trackline active" data-track="bass" id="bassLine">
+        <span class="trackname">БАС</span><span class="tokens" id="bassTokens">—</span>
+      </div>
+      <div class="trackline" data-track="melody" id="melodyLine">
+        <span class="trackname">МЕЛОДИЯ</span><span class="tokens" id="melodyTokens">—</span>
+      </div>
+      <div class="trackline" data-track="harmony" id="harmonyLine">
+        <span class="trackname">ГАРМОНИЯ</span><span class="tokens" id="harmonyTokens">—</span>
+      </div>
+
+      <div class="screen-bottom">
+        <span id="status">ГОТОВО</span>
+        <span id="editStatus">БАС · КОНЕЦ</span>
+      </div>
+    </section>
+  </section>
+
+  <section class="pill-grid">
+    <button id="bassBtn" class="layer activeLayer" data-switch="bass">БАС</button>
+    <button id="melodyBtn" class="layer" data-switch="melody">МЕЛОДИЯ</button>
+    <button id="harmonyBtn" class="layer" data-switch="harmony">ГАРМОНИЯ</button>
+    <button class="util" data-action="lower">НИЖЕ</button>
+    <button class="util" data-action="higher">ВЫШЕ</button>
+  </section>
+
+
+  <section class="utilitybar">
+    <button class="util" data-action="left">← ВЫБОР</button>
+    <button class="util" data-action="right">ВЫБОР →</button>
+    <button class="util" data-action="delete">⌫ УДАЛИТЬ</button>
+    <button class="util" data-action="clear">ОЧИСТИТЬ</button>
+  </section>
+
+  <section class="keys">
+    <button class="num-red" data-note="7">7</button>
+    <button class="num-yellow" data-note="8">8</button>
+    <button class="num-green" data-note="9">9</button>
+    <button class="secondaryAccent" data-action="variation">ВАРИАЦИЯ</button>
+
+    <button class="num-blue" data-note="4">4</button>
+    <button class="num-red" data-note="5">5</button>
+    <button class="num-yellow" data-note="6">6</button>
+    <button class="util" data-action="reverse">РАЗВОРОТ</button>
+
+    <button class="num-green" data-note="1">1</button>
+    <button class="num-blue" data-note="2">2</button>
+    <button class="num-red" data-note="3">3</button>
+    <button class="secondaryAccent" data-action="duplicate">ПОВТОР</button>
+
+    <button class="num-yellow" data-note="0">0<br><small>ПАУЗА</small></button>
+    <button class="util" data-action="mute">ТИШИНА</button>
+    <button class="play" data-action="play">= <small>ПЕТЛЯ</small></button>
+    <button class="stop" data-action="stop">■</button>
+  </section>
+
+
+<details class="settings-drawer" id="settingsDrawer"><summary>⚙ НАСТРОЙКИ ЗВУКА И РИТМА</summary>
+  <section class="controls">
+    <div class="control">
+      <label>Тональность</label>
+      <select id="root">
+        <option>C</option><option>C#</option><option>D</option><option>D#</option>
+        <option>E</option><option>F</option><option>F#</option><option>G</option>
+        <option>G#</option><option>A</option><option>A#</option><option>B</option>
+      </select>
+    </div>
+    <div class="control">
+      <label>Лад</label>
+      <select id="scale">
+        <option value="minor">Минор</option>
+        <option value="major">Мажор</option>
+        <option value="dorian">Дорийский</option>
+        <option value="pentatonic">Пентатоника</option>
+      </select>
+    </div>
+    <div class="control">
+      <label>Тембр баса</label>
+      <select id="bassVoice">
+        <option value="bass">Бас</option>
+        <option value="tape">Лента</option>
+        <option value="digi">Цифра</option>
+      </select>
+    </div>
+    <div class="control">
+      <label>Тембр мелодии</label>
+      <select id="melodyVoice">
+        <option value="pluck">Плак</option>
+        <option value="tape">Лента</option>
+        <option value="digi">Цифра</option>
+      </select>
+    </div>
+    <div class="control">
+      <label>Тембр гармонии</label>
+      <select id="harmonyVoice">
+        <option value="pad">Пэд</option>
+        <option value="tape">Лента</option>
+        <option value="digi">Цифра</option>
+      </select>
+    </div>
+    <div class="control">
+      <label>Темп <span id="bpmSmall">112</span></label>
+      <input id="bpm" type="range" min="55" max="190" value="112">
+    </div>
+    <div class="control">
+      <label>Характер <span id="toneSmall">55</span></label>
+      <input id="tone" type="range" min="0" max="100" value="55">
+    </div>
+    <div class="control">
+      <label>Общая громкость <span id="masterSmall">70</span></label>
+      <input id="masterVol" type="range" min="20" max="100" value="70">
+    </div>
+  </section>
+  <section class="rhythm">
+    <div class="rhythm-title">
+      <span>РИТМ — БЫСТРЫЙ СЛОЙ</span>
+      <label><input id="rhythmOn" type="checkbox" checked> ВКЛ</label>
+    </div>
+    <div class="rhythm-grid">
+      <div class="control">
+        <label>Рисунок</label>
+        <select id="rhythmPattern">
+          <option value="pulse">Пульс</option>
+          <option value="boom">Бум-бэп</option>
+          <option value="club">Ровный</option>
+          <option value="broken">Ломаный</option>
+        </select>
+      </div>
+      <div class="control">
+        <label>Плотность</label>
+        <input id="density" type="range" min="1" max="4" value="2">
+      </div>
+      <div class="control">
+        <label>Громкость</label>
+        <input id="drumVol" type="range" min="0" max="100" value="48">
+      </div>
+    </div>
+  </section>
+</details>
+  <div class="help" style="background:transparent;border:0;color:#111111;text-align:center;font-size:10px;font-weight:700;padding:8px 4px 0;">
+    Спроектировано и разработано в коллаборации Ани Зубец и ChatGPT
+  </div>
+</main>
+
+<script>
+(() => {
+  const scales = {
+    major:[0,2,4,5,7,9,11],
+    minor:[0,2,3,5,7,8,10],
+    dorian:[0,2,3,5,7,9,10],
+    pentatonic:[0,3,5,7,10]
+  };
+  const roots = {"C":0,"C#":1,"D":2,"D#":3,"E":4,"F":5,"F#":6,"G":7,"G#":8,"A":9,"A#":10,"B":11};
+
+  let ctx=null, master=null, delay=null, feedback=null, wet=null;
+  let activeTrack="bass";
+  let tracks={
+    bass:{seq:[], selected:-1, shift:0, muted:false},
+    melody:{seq:[], selected:-1, shift:0, muted:false},
+    harmony:{seq:[], selected:-1, shift:0, muted:false}
+  };
+  let playing=false, tick=0, timer=null;
+
+  const $=id=>document.getElementById(id);
+  const rootEl=$("root"), scaleEl=$("scale"), bpmEl=$("bpm"), toneEl=$("tone");
+  const bassVoiceEl=$("bassVoice"), melodyVoiceEl=$("melodyVoice"), harmonyVoiceEl=$("harmonyVoice");
+
+  function ensureAudio(){
+    if(ctx){ if(ctx.state==="suspended")ctx.resume(); return; }
+    ctx=new (window.AudioContext||window.webkitAudioContext)();
+    master=ctx.createGain(); master.gain.value=.70;
+    delay=ctx.createDelay(1); delay.delayTime.value=.24;
+    feedback=ctx.createGain(); feedback.gain.value=.20;
+    wet=ctx.createGain(); wet.gain.value=.16;
+    delay.connect(feedback); feedback.connect(delay); delay.connect(wet); wet.connect(master); master.connect(ctx.destination);
+  }
+
+  function midiToHz(m){return 440*Math.pow(2,(m-69)/12)}
+  function scaleDegreeToMidi(deg,track,extraDegreeShift=0){
+    if(deg===0)return null;
+    const sc=scales[scaleEl.value];
+    const zero=(deg-1)+tracks[track].shift+extraDegreeShift;
+    let idx=zero,oct=0;
+    while(idx<0){idx+=sc.length;oct--}
+    while(idx>=sc.length){idx-=sc.length;oct++}
+    const base=track==="bass"?36:48;
+    return base+roots[rootEl.value]+sc[idx]+oct*12;
+  }
+  function cutoff(){
+    const t=Number(toneEl.value)/100;
+    return 420+Math.pow(t,1.7)*7600;
+  }
+
+  function synthOne(midi,voice,track,duration=.18,when=null,vel=1){
+    ensureAudio();
+    const now=when??ctx.currentTime;
+    const freq=midiToHz(midi);
+    const filter=ctx.createBiquadFilter();
+    filter.type="lowpass";
+    filter.frequency.setValueAtTime(cutoff()*(track==="bass"?.72:1),now);
+    filter.Q.value=track==="bass"?1.1:.55;
+
+    const gain=ctx.createGain();
+    gain.gain.setValueAtTime(.0001,now);
+
+    let types=["triangle"],det=[0],attack=.006,decay=duration,baseGain=.18;
+    if(voice==="bass"){types=["sawtooth","square","sine"];det=[0,-12,0];attack=.004;decay=duration*1.05;baseGain=.29}
+    if(voice==="pluck"){types=["triangle"];attack=.002;decay=Math.min(.15,duration);baseGain=.17}
+    if(voice==="tape"){types=["triangle","sine"];det=[-7,7];attack=.018;decay=duration*1.25;baseGain=track==="harmony"?.10:.16}
+    if(voice==="digi"){types=["square"];attack=.002;decay=duration*.8;baseGain=track==="harmony"?.09:.15}
+    if(voice==="pad"){types=["triangle","sine"];det=[-5,5];attack=.045;decay=duration*1.65;baseGain=.105}
+
+    gain.gain.exponentialRampToValueAtTime(baseGain*vel,now+attack);
+    gain.gain.exponentialRampToValueAtTime(.0001,now+attack+Math.max(.06,decay));
+
+    types.forEach((type,i)=>{
+      const o=ctx.createOscillator();
+      o.type=type;
+      o.frequency.setValueAtTime(freq,now);
+      o.detune.value=(det[i]||0);
+      o.connect(filter);
+      o.start(now);
+      o.stop(now+attack+decay+.12);
+    });
+    filter.connect(gain);
+    gain.connect(master);
+    gain.connect(delay);
+  }
+
+  function playTrackEvent(deg,track,duration=.18,when=null){
+    if(deg===0 || tracks[track].muted)return;
+    if(track==="harmony"){
+      const chordMidis=[
+        scaleDegreeToMidi(deg,track,0),
+        scaleDegreeToMidi(deg,track,2),
+        scaleDegreeToMidi(deg,track,4)
+      ];
+      chordMidis.forEach((m,i)=>synthOne(m,harmonyVoiceEl.value,track,duration*1.35,when, i===0?1:.82));
+    } else {
+      const voice=track==="bass"?bassVoiceEl.value:melodyVoiceEl.value;
+      synthOne(scaleDegreeToMidi(deg,track),voice,track,duration,when,1);
+    }
+  }
+
+  function kick(when,vol){
+    ensureAudio();
+    const o=ctx.createOscillator(),g=ctx.createGain();
+    o.type="sine";
+    o.frequency.setValueAtTime(155,when);
+    o.frequency.exponentialRampToValueAtTime(43,when+.14);
+    g.gain.setValueAtTime(.0001,when);
+    g.gain.exponentialRampToValueAtTime(1.08*vol,when+.002);
+    g.gain.exponentialRampToValueAtTime(.0001,when+.22);
+    o.connect(g);g.connect(master);o.start(when);o.stop(when+.24);
+  }
+  function snare(when,vol){
+    ensureAudio();
+    const len=Math.floor(ctx.sampleRate*.13),buf=ctx.createBuffer(1,len,ctx.sampleRate),data=buf.getChannelData(0);
+    for(let i=0;i<len;i++)data[i]=Math.random()*2-1;
+    const src=ctx.createBufferSource();src.buffer=buf;
+    const hp=ctx.createBiquadFilter();hp.type="highpass";hp.frequency.value=950;
+    const g=ctx.createGain();g.gain.setValueAtTime(.30*vol,when);g.gain.exponentialRampToValueAtTime(.0001,when+.13);
+    src.connect(hp);hp.connect(g);g.connect(master);src.start(when);
+  }
+  function hat(when,vol){
+    ensureAudio();
+    const len=Math.floor(ctx.sampleRate*.038),buf=ctx.createBuffer(1,len,ctx.sampleRate),data=buf.getChannelData(0);
+    for(let i=0;i<len;i++)data[i]=Math.random()*2-1;
+    const src=ctx.createBufferSource();src.buffer=buf;
+    const hp=ctx.createBiquadFilter();hp.type="highpass";hp.frequency.value=6000;
+    const g=ctx.createGain();g.gain.setValueAtTime(.072*vol,when);g.gain.exponentialRampToValueAtTime(.0001,when+.038);
+    src.connect(hp);hp.connect(g);g.connect(master);src.start(when);
+  }
+
+  function drumStep(step){
+    if(!$("rhythmOn").checked)return;
+    const pat=$("rhythmPattern").value,d=Number($("density").value),vol=Number($("drumVol").value)/100;
+    const s=step%16,now=ctx.currentTime;
+    const kickMap={pulse:[0,8],boom:[0,6,10],club:[0,4,8,12],broken:[0,5,9,14]}[pat];
+    const snareMap={pulse:[4,12],boom:[4,12],club:[4,12],broken:[4,11]}[pat];
+    if(kickMap.includes(s))kick(now,vol);
+    if(snareMap.includes(s))snare(now,vol*.88);
+    const every=d===1?4:d===2?2:1;
+    if(s%every===0)hat(now,vol*(d===4?.72:.55));
+    if(d>=3 && (s===3||s===7||s===15))hat(now,vol*.42);
+  }
+
+  function sixteenthMs(){return 60000/Number(bpmEl.value)/4}
+
+  function scheduler(){
+    if(!playing)return;
+    ensureAudio();
+    drumStep(tick);
+    if(tick%2===0){
+      ["bass","melody","harmony"].forEach(track=>{
+        const seq=tracks[track].seq;
+        if(seq.length){
+          const step=(tick/2)%seq.length;
+          const duration=Math.max(.10,sixteenthMs()*2/1000*.72);
+          playTrackEvent(seq[step],track,duration);
+        }
+      });
+    }
+    render();
+    tick=(tick+1)%1000000;
+    timer=setTimeout(scheduler,sixteenthMs());
+  }
+
+  function togglePlay(){
+    ensureAudio();
+    if(!tracks.bass.seq.length && !tracks.melody.seq.length && !tracks.harmony.seq.length){
+      setStatus("НЕТ ПАРТИИ");return;
+    }
+    if(playing){stop()}
+    else{playing=true;tick=0;setStatus("ИГРАЕТ");scheduler()}
+  }
+  function stop(){ playing=false; clearTimeout(timer); setStatus("СТОП"); render(); }
+
+  function setTrack(track){
+    activeTrack=track;
+    if(tracks[track].seq.length && tracks[track].selected<0)tracks[track].selected=tracks[track].seq.length-1;
+    render();
+  }
+
+  function addNote(n){
+    ensureAudio();
+    const tr=tracks[activeTrack],val=Number(n);
+    if(tr.selected>=0 && tr.selected<tr.seq.length-1){
+      tr.seq.splice(tr.selected+1,0,val); tr.selected++;
+    } else {
+      tr.seq.push(val); tr.selected=tr.seq.length-1;
+    }
+    if(val!==0 && !tr.muted)playTrackEvent(val,activeTrack,.22);
+    const names={bass:"ПИШЕМ БАС",melody:"ПИШЕМ МЕЛОДИЮ",harmony:"ПИШЕМ ГАРМОНИЮ"};
+    setStatus(names[activeTrack]);
+    render();
+  }
+
+  function moveSel(dir){
+    const tr=tracks[activeTrack];
+    if(!tr.seq.length){tr.selected=-1;render();return}
+    if(tr.selected<0)tr.selected=tr.seq.length-1;
+    else tr.selected=Math.max(0,Math.min(tr.seq.length-1,tr.selected+dir));
+    render();
+  }
+
+  function del(){
+    const tr=tracks[activeTrack];
+    if(!tr.seq.length)return;
+    if(tr.selected<0)tr.selected=tr.seq.length-1;
+    tr.seq.splice(tr.selected,1);
+    tr.selected=Math.min(tr.selected,tr.seq.length-1);
+    setStatus("УДАЛЕНО");
+    render();
+  }
+
+  function clearTrack(){
+    tracks[activeTrack].seq=[];
+    tracks[activeTrack].selected=-1;
+    setStatus("ОЧИЩЕНО");
+    render();
+  }
+
+  function variation(){
+    const tr=tracks[activeTrack];
+    const inds=tr.seq.map((x,i)=>x>0?i:null).filter(x=>x!==null);
+    if(!inds.length){setStatus("НЕЧЕГО МЕНЯТЬ");return}
+    const i=inds[Math.floor(Math.random()*inds.length)];
+    const dir=Math.random()<.5?-1:1;
+    tr.seq[i]=Math.max(1,Math.min(9,tr.seq[i]+dir));
+    tr.selected=i;
+    setStatus("ВАРИАЦИЯ");
+    render();
+  }
+
+  function duplicate(){
+    const tr=tracks[activeTrack];
+    if(!tr.seq.length)return;
+    if(tr.selected<0)tr.selected=tr.seq.length-1;
+    tr.seq.splice(tr.selected+1,0,tr.seq[tr.selected]);
+    tr.selected++;
+    setStatus("ПОВТОР");
+    render();
+  }
+
+  function reverseTrack(){
+    const tr=tracks[activeTrack];
+    if(!tr.seq.length)return;
+    tr.seq.reverse();
+    if(tr.selected>=0) tr.selected=tr.seq.length-1-tr.selected;
+    setStatus("РАЗВОРОТ");
+    render();
+  }
+
+  function toggleMute(){
+    tracks[activeTrack].muted=!tracks[activeTrack].muted;
+    setStatus(tracks[activeTrack].muted ? "ДОРОЖКА В ТИШИНЕ" : "ДОРОЖКА СНОВА ИГРАЕТ");
+    render();
+  }
+
+  function shiftLayer(dir){
+    tracks[activeTrack].shift+=dir;
+    setStatus(dir>0?"ВСЯ ПАРТИЯ ВЫШЕ":"ВСЯ ПАРТИЯ НИЖЕ");
+    render();
+  }
+
+  function setStatus(t){ $("status").textContent=t; }
+
+  function tokenHTML(track){
+    const tr=tracks[track];
+    if(!tr.seq.length)return "—";
+    return tr.seq.map((v,i)=>{
+      const playingIdx=playing && tick%2===0 && !tr.muted && ((tick/2)%tr.seq.length===i);
+      const cls=["token"];
+      if(track===activeTrack && i===tr.selected)cls.push("selected");
+      if(playingIdx)cls.push("playing");
+      return `<span class="${cls.join(" ")}" data-token="${i}" data-track="${track}">${v===0?"·":v}</span>`;
+    }).join(" ");
+  }
+
+  function renderTrackName(track){
+    const names={bass:"БАС",melody:"МЕЛОДИЯ",harmony:"ГАРМОНИЯ"};
+    return names[track] + (tracks[track].muted ? '<span class="muted-badge">ТИХО</span>' : '');
+  }
+
+  function render(){
+    if(master) master.gain.value=Number($("masterVol").value)/100;
+    $("keyLabel").textContent=rootEl.value+" · "+scaleEl.options[scaleEl.selectedIndex].text.toUpperCase();
+    $("bpmLabel").textContent=bpmEl.value+" УД/МИН";
+    $("bpmSmall").textContent=bpmEl.value;
+    $("toneSmall").textContent=toneEl.value;
+    $("masterSmall").textContent=$("masterVol").value;
+
+    $("bassTokens").innerHTML=tokenHTML("bass");
+    $("melodyTokens").innerHTML=tokenHTML("melody");
+    $("harmonyTokens").innerHTML=tokenHTML("harmony");
+
+    $("bassLine").querySelector(".trackname").innerHTML=renderTrackName("bass");
+    $("melodyLine").querySelector(".trackname").innerHTML=renderTrackName("melody");
+    $("harmonyLine").querySelector(".trackname").innerHTML=renderTrackName("harmony");
+
+    ["bass","melody","harmony"].forEach(track=>{
+      $(track+"Line").classList.toggle("active",activeTrack===track);
+      $(track+"Btn").classList.toggle("activeLayer",activeTrack===track);
+    });
+
+    const tr=tracks[activeTrack];
+    const names={bass:"БАС",melody:"МЕЛОДИЯ",harmony:"ГАРМОНИЯ"};
+    $("editStatus").textContent=names[activeTrack]+" · "+(tr.selected>=0?("ПОЗИЦИЯ "+(tr.selected+1)):"КОНЕЦ")+(tr.muted?" · ТИХО":"");
+
+    document.querySelectorAll(".token").forEach(tok=>{
+      tok.addEventListener("pointerdown",e=>{
+        e.stopPropagation();
+        activeTrack=tok.dataset.track;
+        tracks[activeTrack].selected=Number(tok.dataset.token);
+        render();
+      });
+    });
+  }
+
+  document.querySelectorAll("[data-switch]").forEach(b=>b.addEventListener("pointerdown",()=>setTrack(b.dataset.switch)));
+  document.querySelectorAll("[data-note]").forEach(b=>b.addEventListener("pointerdown",()=>addNote(b.dataset.note)));
+  document.querySelectorAll("[data-action]").forEach(b=>b.addEventListener("pointerdown",()=>{
+    const a=b.dataset.action;
+    if(a==="left")moveSel(-1);
+    if(a==="right")moveSel(1);
+    if(a==="delete")del();
+    if(a==="clear")clearTrack();
+    if(a==="variation")variation();
+    if(a==="reverse")reverseTrack();
+    if(a==="duplicate")duplicate();
+    if(a==="mute")toggleMute();
+    if(a==="play")togglePlay();
+    if(a==="stop")stop();
+    if(a==="higher")shiftLayer(1);
+    if(a==="lower")shiftLayer(-1);
+  }));
+
+  ["root","scale","bpm","tone","bassVoice","melodyVoice","harmonyVoice","rhythmPattern","density","drumVol","rhythmOn","masterVol"].forEach(id=>{
+    $(id).addEventListener("input",render);
+  });
+
+  window.addEventListener("keydown",e=>{
+    if(e.repeat)return;
+    const k=e.key;
+    if("123456789".includes(k))addNote(Number(k));
+    else if(k==="0")addNote(0);
+    else if(k==="Backspace"||k==="Delete")del();
+    else if(k==="ArrowLeft")moveSel(-1);
+    else if(k==="ArrowRight")moveSel(1);
+    else if(k==="="||k==="Enter")togglePlay();
+    else if(k.toLowerCase()==="m")toggleMute();
+    else return;
+    e.preventDefault();
+  });
+
+  $("bassLine").addEventListener("pointerdown",()=>setTrack("bass"));
+  $("melodyLine").addEventListener("pointerdown",()=>setTrack("melody"));
+  $("harmonyLine").addEventListener("pointerdown",()=>setTrack("harmony"));
+
+  render();
+})();
+</script>
+
+
+<div id="pwaState" aria-live="polite" style="
+position:fixed;left:50%;bottom:max(10px,env(safe-area-inset-bottom));
+transform:translateX(-50%);z-index:9999;background:#111;color:#fff;
+font:700 11px/1.2 Trebuchet MS,Arial,sans-serif;padding:7px 11px;
+border:2px solid #111;border-radius:999px;display:none;white-space:nowrap;">
+</div>
+<script>
+(async function(){
+  const badge = document.getElementById("pwaState");
+  let hideTimer = null;
+
+  function show(text, persistent=false){
+    clearTimeout(hideTimer);
+    badge.textContent = text;
+    badge.style.display = "block";
+    if (!persistent) hideTimer = setTimeout(() => badge.style.display = "none", 2600);
+  }
+
+  function networkState(){
+    if (!navigator.onLine) show("ОФЛАЙН · РАБОТАЕТ", true);
+    else if (badge.textContent === "ОФЛАЙН · РАБОТАЕТ") badge.style.display = "none";
+  }
+  window.addEventListener("online", networkState);
+  window.addEventListener("offline", networkState);
+
+  if (!("serviceWorker" in navigator) || !("caches" in window)) {
+    show("ОФЛАЙН НЕДОСТУПЕН", true);
+    return;
+  }
+
+  try {
+    const reg = await navigator.serviceWorker.register("./service-worker.js", {
+      scope: "./",
+      updateViaCache: "none"
+    });
+    await navigator.serviceWorker.ready;
