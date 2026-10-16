@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, viewport-fit=cover">
-<title>Работник — Покет Калькулейтор Sampler v0.7</title>
+<title>Работник — Покет Калькулейтор Sampler v0.7.1</title>
 <style>
 :root{
   --red:#e53935;
@@ -459,7 +459,7 @@ button small{font-size:8px}
 .sampler-panel input[type=range]{width:100%}
 .sampler-hint{font-size:11px;font-weight:800;line-height:1.25;padding:5px 0;color:#111}
 .sampler-status{background:#d8efc8;border:3px solid #111;border-radius:9px;padding:8px;font-size:12px;font-weight:900;min-height:36px;overflow-wrap:anywhere}
-.sampler-wave{width:100%;height:49px;background:#d8efc8;border:3px solid #111;border-radius:9px;touch-action:none;display:block}
+.sampler-wave{width:100%;height:96px;background:#d8efc8;border:3px solid #111;border-radius:9px;touch-action:none;display:block}
 .sampler-track{font-size:12px;font-weight:900;color:#111;overflow-wrap:anywhere;min-height:28px}
 .sampler-list{display:grid;grid-template-columns:repeat(3,1fr);gap:5px;margin:8px 0}
 .sampler-list button{min-height:30px;font-size:11px;padding:4px}
@@ -518,16 +518,16 @@ button small{font-size:8px}
   </section>
 
   <section class="sampler-panel" id="samplerPanel" hidden>
-    <div class="sampler-row"><button type="button" id="sampleMelodic" class="selected-btn">МЕЛОДИЯ</button><button type="button" id="sampleDrums">ЗВУКИ</button></div>
+    <div class="sampler-hint">МЕЛОДИЧЕСКИЙ СЕМПЛЕР · ОДИН ЗВУК, ДЕВЯТЬ НОТ</div>
     <div class="sampler-hint" id="sampleHelp">Запиши один звук — играй цифрами 1–9 по ступеням гаммы.</div>
     <div class="sampler-row"><button id="sampleRecord" type="button">● ЗАПИСАТЬ</button><button id="sampleUpload" type="button">↑ ЗАГРУЗИТЬ</button></div>
     <input type="file" id="sampleFile" accept="audio/*,.wav,.mp3,.m4a,.aac,.ogg">
     <div class="sampler-status" id="sampleStatus" role="status">СЕМПЛ НЕ ЗАГРУЖЕН</div>
-    <canvas id="sampleWave" width="660" height="98" class="sampler-wave" aria-label="Звуковая волна семпла"></canvas>
-    <div class="sampler-row"><div><label for="sampleStart">НАЧАЛО</label><input type="range" id="sampleStart" min="0" max="95" value="0"></div><div><label for="sampleEnd">КОНЕЦ</label><input type="range" id="sampleEnd" min="5" max="100" value="100"></div></div>
+    <div class="sampler-hint">ОБРЕЗКА · ПЕРЕТАСКИВАЙ ЛЕВУЮ И ПРАВУЮ ГРАНИЦУ НА ВОЛНЕ</div>
+    <canvas id="sampleWave" width="660" height="160" class="sampler-wave" aria-label="Обрезка семпла: перетащите границы прямо на звуковой волне"></canvas>
+    <div class="sampler-hint" id="trimStatus">НАЧАЛО 0% · КОНЕЦ 100%</div>
     <div class="sampler-row"><button type="button" id="sampleReverse">РАЗВОРОТ: ВЫКЛ</button><button type="button" id="samplePreview">▶ ПРОСЛУШАТЬ</button></div>
-    <div class="sampler-hint" id="sampleSlotLabel">СЛОТ 1 · Назначь звук любой клавише 1–9</div>
-    <div class="sampler-list" id="sampleSlots"></div>
+    
     <div class="sampler-hint">Партия семплера играет вместе с басом, мелодией и гармонией.</div>
     <div class="sampler-track" id="sampleSeq">ПОКА ПУСТО</div>
     <div class="sampler-toolbar"><button type="button" id="sampleUndo">⌫ ШАГ</button><button type="button" id="sampleClear">ОЧИСТИТЬ</button><button type="button" id="sampleMute">ТИШИНА</button></div>
@@ -1041,32 +1041,53 @@ function status(msg){$('sampleStatus').textContent=msg;}
 function paint(){
  const canvas=$('sampleWave'),x=canvas.getContext('2d'),w=canvas.width,h=canvas.height;
  x.fillStyle='#d8efc8';x.fillRect(0,0,w,h);
- const sample=samples[kind==='melodic'?1:slot];
- if(!sample?.buffer)return;
+ const sample=samples[1];
+ if(!sample?.buffer){$('trimStatus').textContent='ЗАПИШИ ИЛИ ЗАГРУЗИ ЗВУК';return;}
  const data=sample.buffer.getChannelData(0),step=Math.max(1,Math.floor(data.length/w));
  x.strokeStyle='#111';x.lineWidth=2;x.beginPath();
  for(let i=0;i<w;i++){let min=1,max=-1;const p=i*step;for(let j=p;j<Math.min(data.length,p+step);j+=Math.max(1,Math.floor(step/20))){const v=data[j];min=Math.min(min,v);max=Math.max(max,v)}x.moveTo(i,(1-min)*h/2);x.lineTo(i,(1-max)*h/2)}x.stroke();
- x.fillStyle='rgba(229,57,53,.18)';x.fillRect(0,0,w*(Number($('sampleStart').value)/100),h);x.fillRect(w*Number($('sampleEnd').value)/100,0,w,h);
+ const left=w*sample.start/100,right=w*sample.end/100;
+ x.fillStyle='rgba(229,57,53,.28)';x.fillRect(0,0,left,h);x.fillRect(right,0,w-right,h);
+ x.fillStyle='rgba(32,180,85,.14)';x.fillRect(left,0,right-left,h);
+ for(const pos of [left,right]){
+   x.strokeStyle='#111';x.lineWidth=5;x.beginPath();x.moveTo(pos,0);x.lineTo(pos,h);x.stroke();
+   x.fillStyle='#fff';x.strokeStyle='#111';x.lineWidth=3;
+   x.beginPath();x.roundRect(Math.max(3,Math.min(w-29,pos-13)),h/2-22,26,44,8);x.fill();x.stroke();
+ }
+ $('trimStatus').textContent=`НАЧАЛО ${sample.start.toFixed(0)}% · КОНЕЦ ${sample.end.toFixed(0)}% · ${(sample.buffer.duration*(sample.end-sample.start)/100).toFixed(2)} С`;
 }
+let draggingTrim=null;
+function wavePercent(e){const r=$('sampleWave').getBoundingClientRect();return Math.max(0,Math.min(100,100*(e.clientX-r.left)/r.width))}
+$('sampleWave').addEventListener('pointerdown',e=>{
+ const s=samples[1];if(!s)return;
+ const p=wavePercent(e);
+ draggingTrim=Math.abs(p-s.start)<=Math.abs(p-s.end)?'start':'end';
+ $('sampleWave').setPointerCapture(e.pointerId);moveTrim(e);
+});
+function moveTrim(e){if(!draggingTrim)return;const s=samples[1];if(!s)return;
+ const p=wavePercent(e);
+ if(draggingTrim==='start')s.start=Math.max(0,Math.min(s.end-1,p));
+ else s.end=Math.min(100,Math.max(s.start+1,p));
+ paint();
+}
+$('sampleWave').addEventListener('pointermove',moveTrim);
+function finishTrim(){if(draggingTrim){draggingTrim=null;saveDirty()}}
+$('sampleWave').addEventListener('pointerup',finishTrim);
+$('sampleWave').addEventListener('pointercancel',finishTrim);
+$('sampleWave').addEventListener('lostpointercapture',finishTrim);
 function refresh(){
  $('synthMode').classList.toggle('is-active',mode==='synth');$('sampleMode').classList.toggle('is-active',mode==='sample');
  $('synthTracks').classList.toggle('synth-hidden',mode==='sample');$('synthUtility').classList.toggle('synth-hidden',mode==='sample');
  $('samplerPanel').hidden=mode!=='sample';
- $('sampleMelodic').classList.toggle('selected-btn',kind==='melodic');$('sampleDrums').classList.toggle('selected-btn',kind==='drums');
- $('sampleSlots').style.display=kind==='drums'?'grid':'none';
- $('sampleHelp').textContent=kind==='melodic'?'Один звук → девять нот выбранной гаммы.':'Девять звуков → девять цифровых клавиш.';
- $('sampleSlotLabel').textContent=kind==='melodic'?'МЕЛОДИЧЕСКИЙ СЕМПЛ':`СЛОТ ${slot} · ${samples[slot]?.name||'нет звука'}`;
- $('sampleSlots').innerHTML=Array.from({length:9},(_,i)=>`<button type="button" data-slot="${i+1}" class="${slot===i+1?'on':''}">${i+1}${samples[i+1]?' ●':''}</button>`).join('');
+ $('sampleHelp').textContent='Один звук → девять нот выбранной гаммы.';
  $('sampleSeq').textContent=sequence.length?`ПЕТЛЯ: ${sequence.map(n=>n===0?'·':n).join(' ')}${muted?' · ТИХО':''}`:'ПЕТЛЯ СЕМПЛЕРА ПУСТА';
  $('sampleMute').textContent=muted?'ВКЛЮЧИТЬ':'ТИШИНА';
- const sample=samples[kind==='melodic'?1:slot];
- $('sampleStart').value=sample?.start??0;$('sampleEnd').value=sample?.end??100;
+ const sample=samples[1];
  $('sampleReverse').textContent=sample?.reverse?'РАЗВОРОТ: ВКЛ':'РАЗВОРОТ: ВЫКЛ';paint();
 }
-function currentSample(){return samples[kind==='melodic'?1:slot]}
+function currentSample(){return samples[1]}
 function saveDirty(){bridge.markDirty?.()}
 function changeMode(name){mode=name;refresh()}
-function changeKind(name){kind=name;refresh();saveDirty()}
 async function decode(blob){
  bridge.ensureAudio();const a=await blob.arrayBuffer();return await bridge.getAudio().decodeAudioData(a.slice(0));
 }
@@ -1074,7 +1095,7 @@ async function setSound(blob,name){
  try{
    status('ЗАГРУЖАЕМ...');const buffer=await decode(blob);
    if(buffer.duration>60)throw Error('Максимальная длительность — 60 секунд');
-   const target=kind==='melodic'?1:slot;
+   const target=1;
    samples[target]={blob,buffer,name:name||'ЗАПИСЬ',start:0,end:100,reverse:false};
    status(`ГОТОВО: ${name||'ЗАПИСЬ'} · ${buffer.duration.toFixed(1)} С`);refresh();saveDirty();
  }catch(e){status('ОШИБКА АУДИО: '+e.message)}
@@ -1085,10 +1106,10 @@ function semitone(degree){
 }
 function trigger(n,at){
  if(n===0||muted)return;
- const s=samples[kind==='melodic'?1:n];if(!s?.buffer)return;
+ const s=samples[1];if(!s?.buffer)return;
  bridge.ensureAudio();const ctx=bridge.getAudio(),start=ctx.currentTime;
  const source=ctx.createBufferSource();source.buffer=s.buffer;
- source.playbackRate.value=kind==='melodic'?Math.pow(2,semitone(n)/12):1;
+ source.playbackRate.value=Math.pow(2,semitone(n)/12);
  if(s.reverse){
    if(!s.reversed){const r=ctx.createBuffer(s.buffer.numberOfChannels,s.buffer.length,s.buffer.sampleRate);
      for(let c=0;c<r.numberOfChannels;c++){const original=s.buffer.getChannelData(c),back=r.getChannelData(c);for(let i=0;i<original.length;i++)back[i]=original[original.length-1-i]};s.reversed=r;}
@@ -1109,9 +1130,6 @@ function sampleTick(tick){if(tick%2||!sequence.length)return;const n=sequence[(t
 bridge.sampleHandler=noteHandler;bridge.sampleTick=sampleTick;bridge.hasSampleSeq=()=>sequence.length>0;
 $('synthMode').addEventListener('click',()=>changeMode('synth'));
 $('sampleMode').addEventListener('click',()=>changeMode('sample'));
-$('sampleMelodic').addEventListener('click',()=>changeKind('melodic'));
-$('sampleDrums').addEventListener('click',()=>changeKind('drums'));
-$('sampleSlots').addEventListener('click',e=>{const b=e.target.closest('[data-slot]');if(b){slot=Number(b.dataset.slot);refresh()}});
 $('sampleUpload').addEventListener('click',()=>$('sampleFile').click());
 $('sampleFile').addEventListener('change',e=>{const f=e.target.files[0];if(f)setSound(f,f.name);e.target.value=''});
 $('sampleRecord').addEventListener('click',async()=>{
@@ -1126,14 +1144,8 @@ $('sampleRecord').addEventListener('click',async()=>{
    const thisRecorder=recorder;setTimeout(()=>{if(thisRecorder.state==='recording'){thisRecorder.stop();$('sampleRecord').textContent='● ЗАПИСАТЬ'}},30000);
  }catch(e){stream?.getTracks().forEach(t=>t.stop());status('МИКРОФОН: '+e.message)}
 });
-$('samplePreview').addEventListener('click',()=>trigger(kind==='melodic'?1:slot));
+$('samplePreview').addEventListener('click',()=>trigger(1));
 $('sampleReverse').addEventListener('click',()=>{const s=currentSample();if(s){s.reverse=!s.reverse;refresh();saveDirty()}});
-for(const prop of ['start','end'])$('sample'+prop[0].toUpperCase()+prop.slice(1)).addEventListener('input',e=>{
- const s=currentSample();if(!s)return;
- s[prop]=Number(e.target.value);
- if(s.start>=s.end){s[prop]=prop==='start'?Math.max(0,s.end-1):Math.min(100,s.start+1);e.target.value=s[prop]}
- paint();saveDirty();
-});
 $('sampleUndo').addEventListener('click',()=>{sequence.pop();refresh();saveDirty()});
 $('sampleClear').addEventListener('click',()=>{sequence=[];refresh();saveDirty()});
 $('sampleMute').addEventListener('click',()=>{muted=!muted;refresh();saveDirty()});
@@ -1149,7 +1161,7 @@ bridge.markDirty=()=>{clearTimeout(saveTimer);saveTimer=setTimeout(()=>storeProj
 (async()=>{
  try{db=await openDb();const project=await new Promise((resolve,reject)=>{const r=db.transaction(STORE).objectStore(STORE).get('current');r.onsuccess=()=>resolve(r.result);r.onerror=()=>reject(r.error)});
    if(project){bridge.setProject(project);sequence=Array.isArray(project.sequence)?project.sequence.slice(0,128):[];
-     kind=project.kind==='drums'?'drums':'melodic';muted=!!project.muted;
+     kind='melodic';muted=!!project.muted;
      for(const item of project.files||[]){if(item.slot<1||item.slot>9)continue;try{samples[item.slot]={...item,buffer:await decode(item.blob)}}catch(e){}}
      status('ПРОЕКТ ВОССТАНОВЛЕН');}
    refresh();
