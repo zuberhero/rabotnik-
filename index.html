@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, viewport-fit=cover">
-<title>Работник — Покет Калькулейтор Mobile Compact v4</title>
+<title>Работник — Покет Калькулейтор Sampler v0.7</title>
 <style>
 :root{
   --red:#e53935;
@@ -289,7 +289,7 @@ input[type="checkbox"]{
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="apple-mobile-web-app-title" content="РАБОТНИК">
-<link rel="apple-touch-icon" href="./icons/icon.svg">
+<link rel="apple-touch-icon" href="./icons/apple-touch-icon.png">
 
 
 <style>
@@ -443,6 +443,31 @@ button small{font-size:8px}
 }
 @media(min-width:601px){.settings-drawer{display:contents}.settings-drawer>summary{display:none}}
 </style>
+
+<style id="sampler-v07-style">
+.mode-switch{display:grid;grid-template-columns:1fr 1fr;gap:7px;margin:9px 0 6px}
+.mode-switch button{min-height:37px;font-size:13px;border-radius:11px;background:#111;color:#fff;border:3px solid #111;font-weight:900}
+.mode-switch button.is-active{background:#f4c300;color:#111}
+.sampler-panel{border:3px solid #111;border-radius:14px;padding:9px;background:#f4c300;margin:7px 0}
+.sampler-panel[hidden],.synth-hidden{display:none!important}
+.sampler-row{display:grid;grid-template-columns:1fr 1fr;gap:7px;margin:7px 0}
+.sampler-row>button,.sampler-panel button{background:#111;color:white;border:3px solid #111;border-radius:11px;min-height:38px;padding:6px;font-weight:900;font-size:12px}
+.sampler-panel .selected-btn{background:#20b455;color:white}
+.sampler-panel select{padding:7px;font-size:15px;max-width:100%;min-width:0;width:100%;border:3px solid #111;border-radius:9px;background:white;color:#111}
+.sampler-panel label{font-weight:900;color:#111;font-size:11px;display:block;margin-bottom:4px}
+.sampler-panel input[type=file]{display:none}
+.sampler-panel input[type=range]{width:100%}
+.sampler-hint{font-size:11px;font-weight:800;line-height:1.25;padding:5px 0;color:#111}
+.sampler-status{background:#d8efc8;border:3px solid #111;border-radius:9px;padding:8px;font-size:12px;font-weight:900;min-height:36px;overflow-wrap:anywhere}
+.sampler-wave{width:100%;height:49px;background:#d8efc8;border:3px solid #111;border-radius:9px;touch-action:none;display:block}
+.sampler-track{font-size:12px;font-weight:900;color:#111;overflow-wrap:anywhere;min-height:28px}
+.sampler-list{display:grid;grid-template-columns:repeat(3,1fr);gap:5px;margin:8px 0}
+.sampler-list button{min-height:30px;font-size:11px;padding:4px}
+.sampler-list button.on{background:#20b455}
+.sampler-toolbar{display:grid;grid-template-columns:repeat(3,1fr);gap:5px}
+.sampler-toolbar button{min-height:35px}
+@media(max-width:390px){.sampler-panel{padding:7px}.sampler-hint{font-size:10px}.sampler-panel button{font-size:11px}}
+</style>
 </head>
 <body>
 <main class="device">
@@ -475,7 +500,8 @@ button small{font-size:8px}
     </section>
   </section>
 
-  <section class="pill-grid">
+  <div class="mode-switch"><button id="synthMode" class="is-active" type="button">СИНТ</button><button id="sampleMode" type="button">СЕМПЛЕР</button></div>
+  <section class="pill-grid" id="synthTracks">
     <button id="bassBtn" class="layer activeLayer" data-switch="bass">БАС</button>
     <button id="melodyBtn" class="layer" data-switch="melody">МЕЛОДИЯ</button>
     <button id="harmonyBtn" class="layer" data-switch="harmony">ГАРМОНИЯ</button>
@@ -484,13 +510,28 @@ button small{font-size:8px}
   </section>
 
 
-  <section class="utilitybar">
+  <section class="utilitybar" id="synthUtility">
     <button class="util" data-action="left">← ВЫБОР</button>
     <button class="util" data-action="right">ВЫБОР →</button>
     <button class="util" data-action="delete">⌫ УДАЛИТЬ</button>
     <button class="util" data-action="clear">ОЧИСТИТЬ</button>
   </section>
 
+  <section class="sampler-panel" id="samplerPanel" hidden>
+    <div class="sampler-row"><button type="button" id="sampleMelodic" class="selected-btn">МЕЛОДИЯ</button><button type="button" id="sampleDrums">ЗВУКИ</button></div>
+    <div class="sampler-hint" id="sampleHelp">Запиши один звук — играй цифрами 1–9 по ступеням гаммы.</div>
+    <div class="sampler-row"><button id="sampleRecord" type="button">● ЗАПИСАТЬ</button><button id="sampleUpload" type="button">↑ ЗАГРУЗИТЬ</button></div>
+    <input type="file" id="sampleFile" accept="audio/*,.wav,.mp3,.m4a,.aac,.ogg">
+    <div class="sampler-status" id="sampleStatus" role="status">СЕМПЛ НЕ ЗАГРУЖЕН</div>
+    <canvas id="sampleWave" width="660" height="98" class="sampler-wave" aria-label="Звуковая волна семпла"></canvas>
+    <div class="sampler-row"><div><label for="sampleStart">НАЧАЛО</label><input type="range" id="sampleStart" min="0" max="95" value="0"></div><div><label for="sampleEnd">КОНЕЦ</label><input type="range" id="sampleEnd" min="5" max="100" value="100"></div></div>
+    <div class="sampler-row"><button type="button" id="sampleReverse">РАЗВОРОТ: ВЫКЛ</button><button type="button" id="samplePreview">▶ ПРОСЛУШАТЬ</button></div>
+    <div class="sampler-hint" id="sampleSlotLabel">СЛОТ 1 · Назначь звук любой клавише 1–9</div>
+    <div class="sampler-list" id="sampleSlots"></div>
+    <div class="sampler-hint">Партия семплера играет вместе с басом, мелодией и гармонией.</div>
+    <div class="sampler-track" id="sampleSeq">ПОКА ПУСТО</div>
+    <div class="sampler-toolbar"><button type="button" id="sampleUndo">⌫ ШАГ</button><button type="button" id="sampleClear">ОЧИСТИТЬ</button><button type="button" id="sampleMute">ТИШИНА</button></div>
+  </section>
   <section class="keys">
     <button class="num-red" data-note="7">7</button>
     <button class="num-yellow" data-note="8">8</button>
@@ -750,6 +791,7 @@ button small{font-size:8px}
     if(!playing)return;
     ensureAudio();
     drumStep(tick);
+    if(window.RabotnikBridge?.sampleTick)window.RabotnikBridge.sampleTick(tick);
     if(tick%2===0){
       ["bass","melody","harmony"].forEach(track=>{
         const seq=tracks[track].seq;
@@ -767,7 +809,7 @@ button small{font-size:8px}
 
   function togglePlay(){
     ensureAudio();
-    if(!tracks.bass.seq.length && !tracks.melody.seq.length && !tracks.harmony.seq.length){
+    if(!tracks.bass.seq.length && !tracks.melody.seq.length && !tracks.harmony.seq.length && !(window.RabotnikBridge?.hasSampleSeq?.())){
       setStatus("НЕТ ПАРТИИ");return;
     }
     if(playing){stop()}
@@ -782,6 +824,7 @@ button small{font-size:8px}
   }
 
   function addNote(n){
+    if(window.RabotnikBridge?.sampleHandler?.(n))return;
     ensureAudio();
     const tr=tracks[activeTrack],val=Number(n);
     if(tr.selected>=0 && tr.selected<tr.seq.length-1){
@@ -793,6 +836,7 @@ button small{font-size:8px}
     const names={bass:"ПИШЕМ БАС",melody:"ПИШЕМ МЕЛОДИЮ",harmony:"ПИШЕМ ГАРМОНИЮ"};
     setStatus(names[activeTrack]);
     render();
+    window.RabotnikBridge?.markDirty?.();
   }
 
   function moveSel(dir){
@@ -811,6 +855,7 @@ button small{font-size:8px}
     tr.selected=Math.min(tr.selected,tr.seq.length-1);
     setStatus("УДАЛЕНО");
     render();
+    window.RabotnikBridge?.markDirty?.();
   }
 
   function clearTrack(){
@@ -818,6 +863,7 @@ button small{font-size:8px}
     tracks[activeTrack].selected=-1;
     setStatus("ОЧИЩЕНО");
     render();
+    window.RabotnikBridge?.markDirty?.();
   }
 
   function variation(){
@@ -830,6 +876,7 @@ button small{font-size:8px}
     tr.selected=i;
     setStatus("ВАРИАЦИЯ");
     render();
+    window.RabotnikBridge?.markDirty?.();
   }
 
   function duplicate(){
@@ -840,6 +887,7 @@ button small{font-size:8px}
     tr.selected++;
     setStatus("ПОВТОР");
     render();
+    window.RabotnikBridge?.markDirty?.();
   }
 
   function reverseTrack(){
@@ -849,18 +897,21 @@ button small{font-size:8px}
     if(tr.selected>=0) tr.selected=tr.seq.length-1-tr.selected;
     setStatus("РАЗВОРОТ");
     render();
+    window.RabotnikBridge?.markDirty?.();
   }
 
   function toggleMute(){
     tracks[activeTrack].muted=!tracks[activeTrack].muted;
     setStatus(tracks[activeTrack].muted ? "ДОРОЖКА В ТИШИНЕ" : "ДОРОЖКА СНОВА ИГРАЕТ");
     render();
+    window.RabotnikBridge?.markDirty?.();
   }
 
   function shiftLayer(dir){
     tracks[activeTrack].shift+=dir;
     setStatus(dir>0?"ВСЯ ПАРТИЯ ВЫШЕ":"ВСЯ ПАРТИЯ НИЖЕ");
     render();
+    window.RabotnikBridge?.markDirty?.();
   }
 
   function setStatus(t){ $("status").textContent=t; }
@@ -936,11 +987,11 @@ button small{font-size:8px}
   }));
 
   ["root","scale","bpm","tone","bassVoice","melodyVoice","harmonyVoice","rhythmPattern","density","drumVol","rhythmOn","masterVol"].forEach(id=>{
-    $(id).addEventListener("input",render);
+    $(id).addEventListener("input",()=>{render();window.RabotnikBridge?.markDirty?.();});
   });
 
   window.addEventListener("keydown",e=>{
-    if(e.repeat)return;
+    if(e.repeat||["INPUT","SELECT","TEXTAREA"].includes(document.activeElement?.tagName))return;
     const k=e.key;
     if("123456789".includes(k))addNote(Number(k));
     else if(k==="0")addNote(0);
@@ -958,9 +1009,154 @@ button small{font-size:8px}
   $("harmonyLine").addEventListener("pointerdown",()=>setTrack("harmony"));
 
   render();
+
+  window.RabotnikBridge={
+    ensureAudio,getAudio:()=>ctx,getMaster:()=>master,
+    getTracks:()=>tracks,getSelectedTrack:()=>activeTrack,
+    getControls:()=>({root:rootEl.value,scale:scaleEl.value,bpm:bpmEl.value,tone:toneEl.value,masterVol:$("masterVol").value,
+      bassVoice:bassVoiceEl.value,melodyVoice:melodyVoiceEl.value,harmonyVoice:harmonyVoiceEl.value,
+      rhythmOn:$("rhythmOn").checked,rhythmPattern:$("rhythmPattern").value,density:$("density").value,drumVol:$("drumVol").value}),
+    setProject:(state)=>{if(!state)return;
+      ["bass","melody","harmony"].forEach(k=>{const t=state.tracks?.[k];if(t){tracks[k].seq=Array.isArray(t.seq)?t.seq.filter(n=>Number.isInteger(n)&&n>=0&&n<=9).slice(0,256):[];tracks[k].selected=-1;tracks[k].shift=Number(t.shift)||0;tracks[k].muted=!!t.muted;}});
+      const controls=state.controls||{};
+      Object.entries(controls).forEach(([k,v])=>{const id={masterVol:"masterVol"}[k]||k;const el=$(id);if(el){if(el.type==="checkbox")el.checked=!!v;else if(Array.from(el.options||[]).length){if(Array.from(el.options).some(o=>o.value===String(v)))el.value=v;}else el.value=v;}});
+      render();
+    },
+    getPlaying:()=>playing,
+    sampleHandler:null,sampleTick:null,markDirty:null
+  };
 })();
 </script>
 
+
+<script id="sampler-v07-script">
+(()=>{
+'use strict';
+const $=id=>document.getElementById(id), bridge=window.RabotnikBridge;
+let mode='synth',kind='melodic',slot=1,recorder=null,stream=null,recordParts=[];
+let samples=Array(10).fill(null),sequence=[],muted=false;
+const rootMap={C:0,'C#':1,D:2,'D#':3,E:4,F:5,'F#':6,G:7,'G#':8,A:9,'A#':10,B:11};
+const scales={minor:[0,2,3,5,7,8,10],major:[0,2,4,5,7,9,11],dorian:[0,2,3,5,7,9,10],pentatonic:[0,3,5,7,10]};
+function status(msg){$('sampleStatus').textContent=msg;}
+function paint(){
+ const canvas=$('sampleWave'),x=canvas.getContext('2d'),w=canvas.width,h=canvas.height;
+ x.fillStyle='#d8efc8';x.fillRect(0,0,w,h);
+ const sample=samples[kind==='melodic'?1:slot];
+ if(!sample?.buffer)return;
+ const data=sample.buffer.getChannelData(0),step=Math.max(1,Math.floor(data.length/w));
+ x.strokeStyle='#111';x.lineWidth=2;x.beginPath();
+ for(let i=0;i<w;i++){let min=1,max=-1;const p=i*step;for(let j=p;j<Math.min(data.length,p+step);j+=Math.max(1,Math.floor(step/20))){const v=data[j];min=Math.min(min,v);max=Math.max(max,v)}x.moveTo(i,(1-min)*h/2);x.lineTo(i,(1-max)*h/2)}x.stroke();
+ x.fillStyle='rgba(229,57,53,.18)';x.fillRect(0,0,w*(Number($('sampleStart').value)/100),h);x.fillRect(w*Number($('sampleEnd').value)/100,0,w,h);
+}
+function refresh(){
+ $('synthMode').classList.toggle('is-active',mode==='synth');$('sampleMode').classList.toggle('is-active',mode==='sample');
+ $('synthTracks').classList.toggle('synth-hidden',mode==='sample');$('synthUtility').classList.toggle('synth-hidden',mode==='sample');
+ $('samplerPanel').hidden=mode!=='sample';
+ $('sampleMelodic').classList.toggle('selected-btn',kind==='melodic');$('sampleDrums').classList.toggle('selected-btn',kind==='drums');
+ $('sampleSlots').style.display=kind==='drums'?'grid':'none';
+ $('sampleHelp').textContent=kind==='melodic'?'Один звук → девять нот выбранной гаммы.':'Девять звуков → девять цифровых клавиш.';
+ $('sampleSlotLabel').textContent=kind==='melodic'?'МЕЛОДИЧЕСКИЙ СЕМПЛ':`СЛОТ ${slot} · ${samples[slot]?.name||'нет звука'}`;
+ $('sampleSlots').innerHTML=Array.from({length:9},(_,i)=>`<button type="button" data-slot="${i+1}" class="${slot===i+1?'on':''}">${i+1}${samples[i+1]?' ●':''}</button>`).join('');
+ $('sampleSeq').textContent=sequence.length?`ПЕТЛЯ: ${sequence.map(n=>n===0?'·':n).join(' ')}${muted?' · ТИХО':''}`:'ПЕТЛЯ СЕМПЛЕРА ПУСТА';
+ $('sampleMute').textContent=muted?'ВКЛЮЧИТЬ':'ТИШИНА';
+ const sample=samples[kind==='melodic'?1:slot];
+ $('sampleStart').value=sample?.start??0;$('sampleEnd').value=sample?.end??100;
+ $('sampleReverse').textContent=sample?.reverse?'РАЗВОРОТ: ВКЛ':'РАЗВОРОТ: ВЫКЛ';paint();
+}
+function currentSample(){return samples[kind==='melodic'?1:slot]}
+function saveDirty(){bridge.markDirty?.()}
+function changeMode(name){mode=name;refresh()}
+function changeKind(name){kind=name;refresh();saveDirty()}
+async function decode(blob){
+ bridge.ensureAudio();const a=await blob.arrayBuffer();return await bridge.getAudio().decodeAudioData(a.slice(0));
+}
+async function setSound(blob,name){
+ try{
+   status('ЗАГРУЖАЕМ...');const buffer=await decode(blob);
+   if(buffer.duration>60)throw Error('Максимальная длительность — 60 секунд');
+   const target=kind==='melodic'?1:slot;
+   samples[target]={blob,buffer,name:name||'ЗАПИСЬ',start:0,end:100,reverse:false};
+   status(`ГОТОВО: ${name||'ЗАПИСЬ'} · ${buffer.duration.toFixed(1)} С`);refresh();saveDirty();
+ }catch(e){status('ОШИБКА АУДИО: '+e.message)}
+}
+function semitone(degree){
+ const c=bridge.getControls(),sc=scales[c.scale]||scales.minor;
+ const i=degree-1;return sc[i%sc.length]+12*Math.floor(i/sc.length)+rootMap[c.root];
+}
+function trigger(n,at){
+ if(n===0||muted)return;
+ const s=samples[kind==='melodic'?1:n];if(!s?.buffer)return;
+ bridge.ensureAudio();const ctx=bridge.getAudio(),start=ctx.currentTime;
+ const source=ctx.createBufferSource();source.buffer=s.buffer;
+ source.playbackRate.value=kind==='melodic'?Math.pow(2,semitone(n)/12):1;
+ if(s.reverse){
+   if(!s.reversed){const r=ctx.createBuffer(s.buffer.numberOfChannels,s.buffer.length,s.buffer.sampleRate);
+     for(let c=0;c<r.numberOfChannels;c++){const original=s.buffer.getChannelData(c),back=r.getChannelData(c);for(let i=0;i<original.length;i++)back[i]=original[original.length-1-i]};s.reversed=r;}
+   source.buffer=s.reversed;
+ }
+ const dur=s.buffer.duration,left=Math.min(dur-.005,Math.max(0,dur*s.start/100)),right=Math.min(dur,Math.max(left+.005,dur*s.end/100));
+ const envelope=ctx.createGain();envelope.gain.setValueAtTime(0.0001,start);envelope.gain.linearRampToValueAtTime(.58,start+.005);
+ const length=(right-left)/source.playbackRate.value;
+ envelope.gain.setValueAtTime(.58,start+Math.max(.006,length-.025));envelope.gain.linearRampToValueAtTime(.0001,start+Math.max(.015,length));
+ source.connect(envelope);envelope.connect(bridge.getMaster());source.start(start,left,right-left);source.stop(start+length+.02);
+}
+function noteHandler(n){
+ if(mode!=='sample')return false;
+ if(n>0)trigger(n);
+ sequence.push(n);if(sequence.length>128)sequence.shift();$('sampleSeq').textContent=`ПЕТЛЯ: ${sequence.map(x=>x||'·').join(' ')}`;saveDirty();return true;
+}
+function sampleTick(tick){if(tick%2||!sequence.length)return;const n=sequence[(tick/2)%sequence.length];trigger(n)}
+bridge.sampleHandler=noteHandler;bridge.sampleTick=sampleTick;bridge.hasSampleSeq=()=>sequence.length>0;
+$('synthMode').addEventListener('click',()=>changeMode('synth'));
+$('sampleMode').addEventListener('click',()=>changeMode('sample'));
+$('sampleMelodic').addEventListener('click',()=>changeKind('melodic'));
+$('sampleDrums').addEventListener('click',()=>changeKind('drums'));
+$('sampleSlots').addEventListener('click',e=>{const b=e.target.closest('[data-slot]');if(b){slot=Number(b.dataset.slot);refresh()}});
+$('sampleUpload').addEventListener('click',()=>$('sampleFile').click());
+$('sampleFile').addEventListener('change',e=>{const f=e.target.files[0];if(f)setSound(f,f.name);e.target.value=''});
+$('sampleRecord').addEventListener('click',async()=>{
+ if(recorder?.state==='recording'){recorder.stop();$('sampleRecord').textContent='● ЗАПИСАТЬ';return}
+ try{
+   if(!navigator.mediaDevices?.getUserMedia||typeof MediaRecorder==='undefined')throw Error('Запись недоступна в этом браузере');
+   stream=await navigator.mediaDevices.getUserMedia({audio:true});
+   recordParts=[];recorder=new MediaRecorder(stream);
+   recorder.ondataavailable=e=>{if(e.data.size)recordParts.push(e.data)};
+   recorder.onstop=async()=>{stream?.getTracks().forEach(t=>t.stop());stream=null;await setSound(new Blob(recordParts,{type:recorder.mimeType}),'МОЙ ЗВУК')};
+   recorder.start();$('sampleRecord').textContent='■ СТОП ЗАПИСЬ';status('ИДЁТ ЗАПИСЬ · ДО 30 С');
+   const thisRecorder=recorder;setTimeout(()=>{if(thisRecorder.state==='recording'){thisRecorder.stop();$('sampleRecord').textContent='● ЗАПИСАТЬ'}},30000);
+ }catch(e){stream?.getTracks().forEach(t=>t.stop());status('МИКРОФОН: '+e.message)}
+});
+$('samplePreview').addEventListener('click',()=>trigger(kind==='melodic'?1:slot));
+$('sampleReverse').addEventListener('click',()=>{const s=currentSample();if(s){s.reverse=!s.reverse;refresh();saveDirty()}});
+for(const prop of ['start','end'])$('sample'+prop[0].toUpperCase()+prop.slice(1)).addEventListener('input',e=>{
+ const s=currentSample();if(!s)return;
+ s[prop]=Number(e.target.value);
+ if(s.start>=s.end){s[prop]=prop==='start'?Math.max(0,s.end-1):Math.min(100,s.start+1);e.target.value=s[prop]}
+ paint();saveDirty();
+});
+$('sampleUndo').addEventListener('click',()=>{sequence.pop();refresh();saveDirty()});
+$('sampleClear').addEventListener('click',()=>{sequence=[];refresh();saveDirty()});
+$('sampleMute').addEventListener('click',()=>{muted=!muted;refresh();saveDirty()});
+const DBNAME='rabotnik-project-v1',STORE='project';let db=null,saveTimer=null;
+async function openDb(){return await new Promise((resolve,reject)=>{const req=indexedDB.open(DBNAME,1);req.onupgradeneeded=()=>req.result.createObjectStore(STORE);req.onsuccess=()=>resolve(req.result);req.onerror=()=>reject(req.error)})}
+async function storeProject(){
+ if(!db)return;
+ const project={tracks:bridge.getTracks(),controls:bridge.getControls(),sequence,kind,muted,files:[]};
+ for(let i=1;i<=9;i++){const s=samples[i];if(s?.blob)project.files.push({slot:i,blob:s.blob,name:s.name,start:s.start,end:s.end,reverse:s.reverse})}
+ const tx=db.transaction(STORE,'readwrite');tx.objectStore(STORE).put(project,'current');
+}
+bridge.markDirty=()=>{clearTimeout(saveTimer);saveTimer=setTimeout(()=>storeProject().catch(()=>status('НЕ УДАЛОСЬ СОХРАНИТЬ')),600)};
+(async()=>{
+ try{db=await openDb();const project=await new Promise((resolve,reject)=>{const r=db.transaction(STORE).objectStore(STORE).get('current');r.onsuccess=()=>resolve(r.result);r.onerror=()=>reject(r.error)});
+   if(project){bridge.setProject(project);sequence=Array.isArray(project.sequence)?project.sequence.slice(0,128):[];
+     kind=project.kind==='drums'?'drums':'melodic';muted=!!project.muted;
+     for(const item of project.files||[]){if(item.slot<1||item.slot>9)continue;try{samples[item.slot]={...item,buffer:await decode(item.blob)}}catch(e){}}
+     status('ПРОЕКТ ВОССТАНОВЛЕН');}
+   refresh();
+ }catch(e){status('СОХРАНЕНИЕ НЕДОСТУПНО')}
+})();
+})();
+</script>
 
 <div id="pwaState" aria-live="polite" style="
 position:fixed;left:50%;bottom:max(10px,env(safe-area-inset-bottom));
@@ -998,3 +1194,27 @@ border:2px solid #111;border-radius:999px;display:none;white-space:nowrap;">
       updateViaCache: "none"
     });
     await navigator.serviceWorker.ready;
+
+    // Ask the worker to make sure the app shell is cached now.
+    if (reg.active) {
+      reg.active.postMessage({type:"CACHE_NOW"});
+    }
+
+    // Give iOS a moment to commit Cache Storage, then verify from the page.
+    await new Promise(r => setTimeout(r, 700));
+    const cached =
+      await caches.match(new URL("./index.html", location.href).href) ||
+      await caches.match(new URL("./", location.href).href);
+
+    if (cached) show("ОФЛАЙН ГОТОВ");
+    else show("ОФЛАЙН ЕЩЁ НЕ ГОТОВ", true);
+  } catch (err) {
+    show("ОФЛАЙН НЕ УСТАНОВЛЕН", true);
+  }
+
+  networkState();
+})();
+</script>
+
+</body>
+</html>
