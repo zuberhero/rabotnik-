@@ -1,4 +1,4 @@
-const CACHE="rabotnik-sampler-v071-20261016";
+const CACHE="rabotnik-synth-v4-restore-20261016";
 const FILES=["/","/index.html","/manifest.webmanifest","/icons/icon.svg"];
 self.addEventListener("install",event=>{
   event.waitUntil(caches.open(CACHE).then(cache=>cache.addAll(FILES)));
